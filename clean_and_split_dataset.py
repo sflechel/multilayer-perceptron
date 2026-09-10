@@ -3,6 +3,12 @@ from pathlib import Path
 import logging
 import pandas as pd
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 
 def import_from_csv(path: Path) -> pd.DataFrame:
     try:
@@ -13,7 +19,7 @@ def import_from_csv(path: Path) -> pd.DataFrame:
     if dataset.shape[1] != 32:
         raise ValueError("Dataset must have 32 columns")
 
-    ids = dataset.iloc[:, 0]
+    ids: pd.Series = dataset.iloc[:, 0]
     try:
         ids = ids.astype(dtype=int)
     except Exception as _:
@@ -23,17 +29,20 @@ def import_from_csv(path: Path) -> pd.DataFrame:
     if not ids.is_unique:
         raise ValueError("Ids are not unique")
 
-    diagnoses = dataset.iloc[:, 1]
+    diagnoses: pd.Series = dataset.iloc[:, 1]
     allowed_values = {"B", "M"}
-    if not diagnoses.is_in(allowed_values).all():
+    if not diagnoses.isin(allowed_values).all():
         raise ValueError("Diagnosis column contain values other than B and M")
 
-    features = dataset[:, 2:]
+    features = dataset.iloc[:, 2:]
     features = features.apply(pd.to_numeric, errors="coerce")
-    clean_dataset = pd.concat([ids, diagnoses, features], axis=1).dropna()
+    clean_dataset: pd.DataFrame = pd.concat([ids, diagnoses, features], axis=1).dropna()
     if clean_dataset.empty:
         raise ValueError("Dataset is empty after cleaning")
 
+    logging.info(
+        f"Dataset successfully imported and cleaned up. {clean_dataset.shape[0]} rows remains out of {dataset.shape[0]}"
+    )
     return clean_dataset
 
 
