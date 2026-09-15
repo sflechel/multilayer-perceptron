@@ -23,7 +23,7 @@ class Layer:
     def forward(self, input: NDArray[np.float64]) -> NDArray[np.float64]:
         self.input = input
 
-        self.Z = np.matmul(self.weights, self.input.T) + self.biases
+        self.Z = np.matmul(self.input, self.weights) + self.biases
         return self.activation(self.Z)
 
     def backward(
