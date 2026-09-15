@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import logging
+from typing import cast
 import pandas as pd
 
 logging.basicConfig(
@@ -46,6 +47,30 @@ def import_from_csv(path: Path) -> pd.DataFrame:
     return clean_dataset
 
 
+def split_dataset(
+    data: pd.DataFrame, training_fraction: float = 0.5, seed: int = 42
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    shuffled_data = data.sample(frac=1.0, ignore_index=True, random_state=seed)
+
+    split_index: int = int(len(shuffled_data) * training_fraction)
+    training_data: pd.DataFrame = cast(pd.DataFrame, shuffled_data[:split_index])
+    testing_data: pd.DataFrame = cast(pd.DataFrame, shuffled_data[split_index:])
+    return training_data, testing_data
+
+
+def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> None:
+    training_path = Path("output/training_dataset")
+    testing_path = Path("output/training_dataset")
+    training_path.parent.mkdir(parents=True, exist_ok=True)
+    testing_path.parent.mkdir(parents=True, exist_ok=True)
+
+    training_data.to_csv(training_path, header=False, index=False)
+    testing_data.to_csv(testing_path, header=False, index=False)
+
+    print(f"-> Training dataset saved to {training_path} ({len(training_data)} rows)")
+    print(f"-> Validation dataset saved to {testing_path} ({len(testing_data)} rows)")
+
+
 def main() -> None:
     if len(sys.argv) == 2:
         dataset_path = Path(sys.argv[1])
@@ -53,6 +78,10 @@ def main() -> None:
         logging.error("Pass in dataset as first and only argument")
         exit(1)
     data = import_from_csv(dataset_path)
+    training_data: pd.DataFrame
+    testing_data: pd.DataFrame
+    training_data, testing_data = split_dataset(data)
+    save_datasets(training_data, testing_data)
 
 
 if __name__ == "__main__":
