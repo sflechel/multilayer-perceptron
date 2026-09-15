@@ -67,8 +67,8 @@ def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> No
     training_data.to_csv(training_path, header=False, index=False)
     testing_data.to_csv(testing_path, header=False, index=False)
 
-    print(f"-> Training dataset saved to {training_path} ({len(training_data)} rows)")
-    print(f"-> Validation dataset saved to {testing_path} ({len(testing_data)} rows)")
+    print(f"Training dataset saved to {training_path} ({len(training_data)} rows)")
+    print(f"Validation dataset saved to {testing_path} ({len(testing_data)} rows)")
 
 
 def main() -> None:
