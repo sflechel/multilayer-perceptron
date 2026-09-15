@@ -60,7 +60,7 @@ def split_dataset(
 
 def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> None:
     training_path = Path("output/training_dataset")
-    testing_path = Path("output/training_dataset")
+    testing_path = Path("output/testing_dataset")
     training_path.parent.mkdir(parents=True, exist_ok=True)
     testing_path.parent.mkdir(parents=True, exist_ok=True)
 
