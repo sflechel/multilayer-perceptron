@@ -34,6 +34,7 @@ def import_from_csv(path: Path) -> pd.DataFrame:
     allowed_values = {"B", "M"}
     if not diagnoses.isin(allowed_values).all():
         raise ValueError("Diagnosis column contain values other than B and M")
+    diagnoses = diagnoses.map({"M": 1.0, "B": 0.0})
 
     features = dataset.iloc[:, 2:]
     features = features.apply(pd.to_numeric, errors="coerce")
@@ -59,8 +60,8 @@ def split_dataset(
 
 
 def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> None:
-    training_path = Path("output/training_dataset")
-    testing_path = Path("output/testing_dataset")
+    training_path = Path("output/training_dataset.csv")
+    testing_path = Path("output/testing_dataset.csv")
     training_path.parent.mkdir(parents=True, exist_ok=True)
     testing_path.parent.mkdir(parents=True, exist_ok=True)
 

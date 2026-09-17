@@ -1,6 +1,6 @@
 from numpy.typing import NDArray
 from layer_class import Layer
-from typing import List
+from typing import Any, Dict, List
 import numpy as np
 
 
@@ -37,11 +37,14 @@ class Multilayer_Perceptron:
         self,
         features: NDArray[np.float64],
         targets: NDArray[np.float64],
-        nb_epochs: int,
-        batch_size: int,
-        learning_rate: float,
-        seed: int,
-    ) -> None:
+        features_val: NDArray[np.float64],
+        targets_val: NDArray[np.float64],
+        nb_epochs: int = 100,
+        batch_size: int = 16,
+        learning_rate: float = 0.01,
+        seed: int = 42,
+    ) -> Dict[str, List[float]]:
+        history: Dict[str, List[float]] = {"training_loss": [], "validation_loss": []}
         nb_samples: np.integer = features.shape[0]
 
         for epoch in range(nb_epochs):
@@ -58,3 +61,17 @@ class Multilayer_Perceptron:
                 predictions: NDArray[np.float64] = self.forward(feature_batch)
                 loss_gradient: NDArray[np.float64] = predictions - target_batch
                 self.backward(loss_gradient, learning_rate)
+
+            training_predictions: NDArray[np.float64] = self.forward(features)
+            training_loss: float = binary_cross_entropy(training_predictions, targets)
+            history["training_loss"].append(training_loss)
+            validation_predictions: NDArray[np.float64] = self.forward(features_val)
+            validation_loss: float = binary_cross_entropy(
+                validation_predictions, targets_val
+            )
+            history["validation_loss"].append(validation_loss)
+            print(
+                f"epoch {epoch}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss}"
+            )
+
+        return history
