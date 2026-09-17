@@ -14,7 +14,7 @@ class Layer:
         self.weights: NDArray[np.float64] = weight_init(n_in, n_out)
         self.biases: NDArray[np.float64] = np.zeros([1, n_out])
 
-        self.d_weights: NDArray[np.float64] = np.zeros([n_out, n_in])
+        self.d_weights: NDArray[np.float64] = np.zeros([n_in, n_out])
         self.d_biases: NDArray[np.float64] = np.zeros([1, n_out])
 
         self.input: NDArray[np.float64] = np.array([])
@@ -23,7 +23,7 @@ class Layer:
     def forward(self, input: NDArray[np.float64]) -> NDArray[np.float64]:
         self.input = input
 
-        self.Z = np.matmul(self.input, self.weights) + self.biases
+        self.Z = np.matmul(self.input, self.weights.T) + self.biases
         return self.activation(self.Z)
 
     def backward(
@@ -33,12 +33,11 @@ class Layer:
         activation_gradient: NDArray[np.float64] = (
             output_gradient * self.activation_derived(self.Z)
         )
-        self.d_weights = np.dot(activation_gradient.T, self.input)
+        self.d_weights = np.matmul(activation_gradient.T, self.input)
         self.d_biases = np.sum(activation_gradient, axis=0, keepdims=True)
 
         self.weights -= learning_rate * self.d_weights
         self.biases -= learning_rate * self.d_biases
 
-        # input_gradient shape: (batch, n_out) @ (n_out, n_in) = (batch, n_in)
-        input_gradient = np.dot(activation_gradient, self.weights)
+        input_gradient = np.matmul(activation_gradient, self.weights)
         return input_gradient

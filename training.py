@@ -31,10 +31,18 @@ def parse_arguments() -> argparse.Namespace:
         help="Learning rate for gradient descent",
     )
     parser.add_argument(
-        "--activation", type="str", default="ReLU", help="Activation function"
+        "--activation",
+        type=str,
+        default="relu",
+        choices=["relu", "sigmoid", "tanh", "linear"],
+        help="Activation function",
     )
     parser.add_argument(
-        "--initializer", type="str", default="he", help="Initialization function"
+        "--initializer",
+        type=str,
+        default="he",
+        choices=["he", "xavier", "zero"],
+        help="Weight initialization method",
     )
 
     return parser.parse_args()
@@ -42,9 +50,9 @@ def parse_arguments() -> argparse.Namespace:
 
 def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None:
     plt.figure(figsize=(9, 5))
-    plt.plot(history["train_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
+    plt.plot(history["training_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
     plt.plot(
-        history["val_loss"],
+        history["validation_loss"],
         label="Validation Loss",
         color="#ff7f0e",
         linewidth=2,
@@ -101,7 +109,7 @@ def main() -> None:
     mlp.add(Layer(n_in=prev_dim, n_out=1, activation="sigmoid", initializer="xavier"))
 
     print(
-        f"Starting training for {args.epochs} epochs with batch size {args.batch_size}..."
+        f"Starting training for {args.epochs + 1} epochs with batch size {args.batch_size}..."
     )
 
     history = mlp.fit(

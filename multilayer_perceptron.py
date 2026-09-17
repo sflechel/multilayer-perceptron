@@ -1,6 +1,6 @@
 from numpy.typing import NDArray
 from layer_class import Layer
-from typing import Any, Dict, List
+from typing import Dict, List
 import numpy as np
 
 
@@ -56,7 +56,7 @@ class Multilayer_Perceptron:
 
             for i in range(0, nb_samples, batch_size):
                 feature_batch = features[i : i + batch_size]
-                target_batch = targets[i : i + batch_size]
+                target_batch = targets[i : i + batch_size].reshape(-1, 1)
 
                 predictions: NDArray[np.float64] = self.forward(feature_batch)
                 loss_gradient: NDArray[np.float64] = predictions - target_batch
@@ -71,7 +71,7 @@ class Multilayer_Perceptron:
             )
             history["validation_loss"].append(validation_loss)
             print(
-                f"epoch {epoch}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss}"
+                f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss}"
             )
 
         return history
