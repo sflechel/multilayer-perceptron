@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Dict, List
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -8,7 +9,7 @@ from utils.feature_scaler import Feature_Scaler
 from layer_class import Layer
 
 
-def main() -> None:
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Train a multilayer perceptron for WDBC binary classification."
     )
@@ -29,8 +30,37 @@ def main() -> None:
         default=0.01,
         help="Learning rate for gradient descent",
     )
+    parser.add_argument(
+        "--activation", type="str", default="ReLU", help="Activation function"
+    )
+    parser.add_argument(
+        "--initializer", type="str", default="he", help="Initialization function"
+    )
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None:
+    plt.figure(figsize=(9, 5))
+    plt.plot(history["train_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
+    plt.plot(
+        history["val_loss"],
+        label="Validation Loss",
+        color="#ff7f0e",
+        linewidth=2,
+        linestyle="--",
+    )
+    plt.title(f"MLP Training Curves (Layers: {args.layer})")
+    plt.xlabel("Epochs")
+    plt.ylabel("Binary Cross-Entropy Loss")
+    plt.legend()
+    plt.grid(True, linestyle=":", alpha=0.6)
+    plt.tight_layout()
+    plt.show()
+
+
+def main() -> None:
+    args: argparse.Namespace = parse_arguments()
 
     try:
         training_dataset: pd.DataFrame = pd.read_csv(
@@ -59,7 +89,12 @@ def main() -> None:
 
     for hidden_dim in args.layer:
         mlp.add(
-            Layer(n_in=prev_dim, n_out=hidden_dim, activation="relu", initializer="he")
+            Layer(
+                n_in=prev_dim,
+                n_out=hidden_dim,
+                activation=args.activation,
+                initializer=args.initializer,
+            )
         )
         prev_dim = hidden_dim
 
@@ -79,22 +114,7 @@ def main() -> None:
         targets_val=y_val,
     )
 
-    plt.figure(figsize=(9, 5))
-    plt.plot(history["train_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
-    plt.plot(
-        history["val_loss"],
-        label="Validation Loss",
-        color="#ff7f0e",
-        linewidth=2,
-        linestyle="--",
-    )
-    plt.title(f"MLP Training Curves (Layers: {args.layer})")
-    plt.xlabel("Epochs")
-    plt.ylabel("Binary Cross-Entropy Loss")
-    plt.legend()
-    plt.grid(True, linestyle=":", alpha=0.6)
-    plt.tight_layout()
-    plt.show()
+    plot_loss(history, args)
 
 
 if __name__ == "__main__":
