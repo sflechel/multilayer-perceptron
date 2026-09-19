@@ -4,8 +4,8 @@ from typing import Dict, List
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from multilayer_perceptron import Multilayer_Perceptron
-from utils.feature_scaler import Feature_Scaler
+from multilayer_perceptron import MultilayerPerceptron
+from utils.feature_scaler import FeatureScaler
 from layer_class import Layer
 
 
@@ -58,6 +58,19 @@ def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None
         linewidth=2,
         linestyle="--",
     )
+    plt.plot(
+        history["training_accuracy"],
+        label="Train Accuracy",
+        color="#1177b4",
+        linewidth=2,
+    )
+    plt.plot(
+        history["validation_accuracy"],
+        label="Validation Accuracy",
+        linewidth=2,
+        color="#ff77b4",
+        linestyle="--",
+    )
     plt.title(f"MLP Training Curves (Layers: {args.layer})")
     plt.xlabel("Epochs")
     plt.ylabel("Binary Cross-Entropy Loss")
@@ -87,11 +100,11 @@ def main() -> None:
     X_val = testing_dataset.iloc[:, 2:].values
     y_val = testing_dataset.iloc[:, 1].values
 
-    scaler = Feature_Scaler()
+    scaler = FeatureScaler()
     X_train = scaler.fit_transform(X_train)
     X_val = scaler.transform(X_val)
 
-    mlp = Multilayer_Perceptron()
+    mlp = MultilayerPerceptron()
     nb_features = X_train.shape[1]
     prev_dim = nb_features
 

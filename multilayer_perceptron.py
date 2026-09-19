@@ -15,7 +15,7 @@ def binary_cross_entropy(
     return cross_entropy
 
 
-class Multilayer_Perceptron:
+class MultilayerPerceptron:
     def __init__(self) -> None:
         self.layers: List[Layer] = []
 
@@ -30,7 +30,10 @@ class Multilayer_Perceptron:
 
     def backward(self, loss_gradient: NDArray[np.float64], learning_rate: float):
         grad: NDArray[np.float64] = loss_gradient
-        for layer in reversed(self.layers):
+        layers = list(reversed(self.layers))
+        grad = layers[0].backward(grad, learning_rate, is_combined_gradient=True)
+
+        for layer in layers[1:]:
             grad = layer.backward(grad, learning_rate)
 
     def fit(
@@ -44,7 +47,13 @@ class Multilayer_Perceptron:
         learning_rate: float = 0.01,
         seed: int = 42,
     ) -> Dict[str, List[float]]:
-        history: Dict[str, List[float]] = {"training_loss": [], "validation_loss": []}
+        history: Dict[str, List[float]] = {
+            "training_loss": [],
+            "validation_loss": [],
+            "training_accuracy": [],
+            "validation_accuracy": [],
+            "weights_norm": [],
+        }
         nb_samples: np.integer = features.shape[0]
 
         for epoch in range(nb_epochs):
@@ -62,16 +71,37 @@ class Multilayer_Perceptron:
                 loss_gradient: NDArray[np.float64] = predictions - target_batch
                 self.backward(loss_gradient, learning_rate)
 
+            weights_size: float = (
+                np.linalg.norm(self.layers[0].weights)
+                + np.linalg.norm(self.layers[1].weights)
+                + np.linalg.norm(self.layers[2].weights)
+            )
+            preds = self.forward(features)
+            print(
+                preds.min(),
+                preds.max(),
+                preds.mean(),
+                ((preds > 0.5) == targets.reshape(-1, 1)).mean(),
+            )
+            history["weights_norm"].append(weights_size)
             training_predictions: NDArray[np.float64] = self.forward(features)
             training_loss: float = binary_cross_entropy(training_predictions, targets)
+            training_accuracy: float = (
+                (training_predictions > 0.5) == targets.reshape(-1, 1)
+            ).mean()
             history["training_loss"].append(training_loss)
+            history["training_accuracy"].append(training_accuracy)
             validation_predictions: NDArray[np.float64] = self.forward(features_val)
+            validation_accuracy: float = (
+                (validation_predictions > 0.5) == targets_val.reshape(-1, 1)
+            ).mean()
             validation_loss: float = binary_cross_entropy(
                 validation_predictions, targets_val
             )
             history["validation_loss"].append(validation_loss)
+            history["validation_accuracy"].append(validation_accuracy)
             print(
-                f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss}"
+                f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss} - accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
             )
 
         return history

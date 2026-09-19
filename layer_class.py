@@ -27,17 +27,29 @@ class Layer:
         return self.activation(self.Z)
 
     def backward(
-        self, output_gradient: NDArray[np.float64], learning_rate: float
+        self,
+        output_gradient: NDArray[np.float64],
+        learning_rate: float,
+        is_combined_gradient: bool = False,
     ) -> NDArray[np.float64]:
 
-        activation_gradient: NDArray[np.float64] = (
-            output_gradient * self.activation_derived(self.Z)
+        if is_combined_gradient:
+            activation_gradient = output_gradient
+        else:
+            activation_gradient: NDArray[np.float64] = (
+                output_gradient * self.activation_derived(self.Z)
+            )
+
+        self.d_weights = (
+            np.matmul(activation_gradient.T, self.input) / self.input.shape[0]
         )
-        self.d_weights = np.matmul(activation_gradient.T, self.input)
-        self.d_biases = np.sum(activation_gradient, axis=0, keepdims=True)
+        self.d_biases = (
+            np.sum(activation_gradient, axis=0, keepdims=True) / self.input.shape[0]
+        )
+
+        input_gradient = np.matmul(activation_gradient, self.weights)
 
         self.weights -= learning_rate * self.d_weights
         self.biases -= learning_rate * self.d_biases
 
-        input_gradient = np.matmul(activation_gradient, self.weights)
         return input_gradient

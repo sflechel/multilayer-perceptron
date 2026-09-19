@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-class Feature_Scaler:
+class FeatureScaler:
     def __init__(self):
         self.mean: NDArray[np.float64] | None = None
         self.std: NDArray[np.float64] | None = None

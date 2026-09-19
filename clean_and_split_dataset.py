@@ -35,6 +35,7 @@ def import_from_csv(path: Path) -> pd.DataFrame:
     if not diagnoses.isin(allowed_values).all():
         raise ValueError("Diagnosis column contain values other than B and M")
     diagnoses = diagnoses.map({"M": 1.0, "B": 0.0})
+    print(diagnoses.sum() / len(diagnoses))
 
     features = dataset.iloc[:, 2:]
     features = features.apply(pd.to_numeric, errors="coerce")
