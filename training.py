@@ -31,18 +31,31 @@ def parse_arguments() -> argparse.Namespace:
         help="Learning rate for gradient descent",
     )
     parser.add_argument(
-        "--activation",
+        "--activ",
         type=str,
         default="relu",
         choices=["relu", "sigmoid", "tanh", "linear"],
         help="Activation function",
     )
     parser.add_argument(
-        "--initializer",
+        "--init",
         type=str,
         default="he",
         choices=["he", "xavier", "zero"],
         help="Weight initialization method",
+    )
+    parser.add_argument(
+        "--reg",
+        type=str,
+        default="none",
+        choices=["none", "l1", "l2"],
+        help="Regularization helps to prevent overfitting",
+    )
+    parser.add_argument(
+        "--reg_lambda",
+        type=float,
+        default=1,
+        help="Parameter for l1 or l2 regularization",
     )
 
     return parser.parse_args()
@@ -104,7 +117,7 @@ def main() -> None:
     X_train = scaler.fit_transform(X_train)
     X_val = scaler.transform(X_val)
 
-    mlp = MultilayerPerceptron()
+    mlp = MultilayerPerceptron(args.reg, args.reg_lambda)
     nb_features = X_train.shape[1]
     prev_dim = nb_features
 
@@ -113,8 +126,8 @@ def main() -> None:
             Layer(
                 n_in=prev_dim,
                 n_out=hidden_dim,
-                activation=args.activation,
-                initializer=args.initializer,
+                activation=args.activ,
+                initializer=args.init,
             )
         )
         prev_dim = hidden_dim

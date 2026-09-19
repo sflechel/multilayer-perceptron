@@ -4,20 +4,11 @@ from typing import Dict, List
 import numpy as np
 
 
-def binary_cross_entropy(
-    predicted: NDArray[np.float64], target: NDArray[np.float64]
-) -> float:
-    epsilon: float = 1e-15
-    predicted = np.clip(predicted, epsilon, 1 - epsilon)
-    cross_entropy: float = -np.mean(
-        target * np.log(predicted) + (1 - target) * np.log(1 - predicted)
-    )
-    return cross_entropy
-
-
 class MultilayerPerceptron:
-    def __init__(self) -> None:
+    def __init__(self, reg: str, reg_lambda: float) -> None:
         self.layers: List[Layer] = []
+        self.reg = reg
+        self.reg_lambda = reg_lambda
 
     def add(self, layer: Layer) -> None:
         self.layers.append(layer)
@@ -31,10 +22,33 @@ class MultilayerPerceptron:
     def backward(self, loss_gradient: NDArray[np.float64], learning_rate: float):
         grad: NDArray[np.float64] = loss_gradient
         layers = list(reversed(self.layers))
-        grad = layers[0].backward(grad, learning_rate, is_combined_gradient=True)
+        grad = layers[0].backward(
+            grad, learning_rate, self.reg, self.reg_lambda, is_combined_gradient=True
+        )
 
         for layer in layers[1:]:
-            grad = layer.backward(grad, learning_rate)
+            grad = layer.backward(grad, learning_rate, self.reg, self.reg_lambda)
+
+    def binary_cross_entropy(
+        self, predicted: NDArray[np.float64], target: NDArray[np.float64]
+    ) -> float:
+        epsilon: float = 1e-15
+        predicted = np.clip(predicted, epsilon, 1 - epsilon)
+        cross_entropy: float = -np.mean(
+            target * np.log(predicted) + (1 - target) * np.log(1 - predicted)
+        )
+
+        if self.reg == "l1":
+            sum_abs_weights = sum(
+                np.sum(np.abs(layer.weights)) for layer in self.layers
+            )
+            cross_entropy += self.reg_lambda * sum_abs_weights
+
+        if self.reg == "l2":
+            sum_sq_weights = sum(np.sum(layer.weights**2) for layer in self.layers)
+            cross_entropy += self.reg_lambda * sum_sq_weights
+
+        return cross_entropy
 
     def fit(
         self,
@@ -76,16 +90,11 @@ class MultilayerPerceptron:
                 + np.linalg.norm(self.layers[1].weights)
                 + np.linalg.norm(self.layers[2].weights)
             )
-            preds = self.forward(features)
-            print(
-                preds.min(),
-                preds.max(),
-                preds.mean(),
-                ((preds > 0.5) == targets.reshape(-1, 1)).mean(),
-            )
             history["weights_norm"].append(weights_size)
             training_predictions: NDArray[np.float64] = self.forward(features)
-            training_loss: float = binary_cross_entropy(training_predictions, targets)
+            training_loss: float = self.binary_cross_entropy(
+                training_predictions, targets
+            )
             training_accuracy: float = (
                 (training_predictions > 0.5) == targets.reshape(-1, 1)
             ).mean()
@@ -95,7 +104,7 @@ class MultilayerPerceptron:
             validation_accuracy: float = (
                 (validation_predictions > 0.5) == targets_val.reshape(-1, 1)
             ).mean()
-            validation_loss: float = binary_cross_entropy(
+            validation_loss: float = self.binary_cross_entropy(
                 validation_predictions, targets_val
             )
             history["validation_loss"].append(validation_loss)

@@ -30,9 +30,12 @@ class Layer:
         self,
         output_gradient: NDArray[np.float64],
         learning_rate: float,
+        regularization: str,
+        regularization_lambda: float,
         is_combined_gradient: bool = False,
     ) -> NDArray[np.float64]:
 
+        l2_lambda: float = 0.1
         if is_combined_gradient:
             activation_gradient = output_gradient
         else:
@@ -42,7 +45,13 @@ class Layer:
 
         self.d_weights = (
             np.matmul(activation_gradient.T, self.input) / self.input.shape[0]
+            + l2_lambda * self.weights
         )
+        if regularization == "l2":
+            self.d_weights += 2 * regularization_lambda * self.weights
+        elif regularization == "l1":
+            self.d_weights += regularization_lambda * np.sign(self.weights)
+
         self.d_biases = (
             np.sum(activation_gradient, axis=0, keepdims=True) / self.input.shape[0]
         )
