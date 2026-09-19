@@ -86,6 +86,17 @@ class MultilayerPerceptron:
             f"- accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
         )
 
+    def snapshot(self):
+        return (
+            [layer.weights.copy() for layer in self.layers],
+            [layer.biases.copy() for layer in self.layers],
+        )
+
+    def restore(self, weights, biases):
+        for layer, w, b in zip(self.layers, weights, biases):
+            layer.weights = w
+            layer.biases = b
+
     def fit(
         self,
         features: NDArray[np.float64],
@@ -109,8 +120,7 @@ class MultilayerPerceptron:
         min_delta: float = 1e-4
         best_loss_val: float = float("inf")
         patience_counter: int = 0
-        best_weights = [layer.weights.copy() for layer in self.layers]
-        best_biases = [layer.biases.copy() for layer in self.layers]
+        best_weights, best_biases = self.snapshot()
 
         for epoch in range(nb_epochs):
             indices: NDArray[np.integer] = np.arange(nb_samples)
@@ -148,12 +158,8 @@ class MultilayerPerceptron:
             else:
                 patience_counter += 1
                 if patience_counter >= self.patience:
-                    print(
-                        f"Early stopping triggered at epoch {epoch + 1}. Restoring best model weights."
-                    )
-                    for i, layer in enumerate(self.layers):
-                        layer.weights = best_weights[i]
-                        layer.biases = best_biases[i]
+                    print(f"Early stopping triggered at epoch {epoch + 1}")
                     break
 
+        self.restore(best_weights, best_biases)
         return history
