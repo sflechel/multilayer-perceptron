@@ -70,15 +70,13 @@ class MultilayerPerceptron:
 
         training_predictions = self.forward(features)
         training_loss: float = self.binary_cross_entropy(training_predictions, targets)
-        training_accuracy: float = (
-            (training_predictions > 0.5) == targets.reshape(-1, 1)
-        ).mean()
+        training_accuracy: float = ((training_predictions > 0.5) == targets).mean()
 
         history["training_loss"].append(training_loss)
         history["training_accuracy"].append(training_accuracy)
 
         validation_accuracy: float = (
-            (validation_predictions > 0.5) == targets_val.reshape(-1, 1)
+            (validation_predictions > 0.5) == targets_val
         ).mean()
         history["validation_loss"].append(loss_val)
         history["validation_accuracy"].append(validation_accuracy)
@@ -123,7 +121,7 @@ class MultilayerPerceptron:
 
             for i in range(0, nb_samples, batch_size):
                 feature_batch = features[i : i + batch_size]
-                target_batch = targets[i : i + batch_size].reshape(-1, 1)
+                target_batch = targets[i : i + batch_size]
 
                 predictions: NDArray[np.float64] = self.forward(feature_batch)
                 loss_gradient: NDArray[np.float64] = predictions - target_batch

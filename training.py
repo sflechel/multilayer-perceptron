@@ -115,9 +115,9 @@ def main() -> None:
         )
 
     X_train = training_dataset.iloc[:, 2:].values
-    y_train = training_dataset.iloc[:, 1].values
+    y_train = training_dataset.iloc[:, 1].values.reshape(-1, 1)
     X_val = testing_dataset.iloc[:, 2:].values
-    y_val = testing_dataset.iloc[:, 1].values
+    y_val = testing_dataset.iloc[:, 1].values.reshape(-1, 1)
 
     scaler = FeatureScaler()
     X_train = scaler.fit_transform(X_train)
