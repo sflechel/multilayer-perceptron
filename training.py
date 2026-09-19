@@ -57,6 +57,12 @@ def parse_arguments() -> argparse.Namespace:
         default=1,
         help="Parameter for l1 or l2 regularization",
     )
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=10,
+        help="How long must validation loss plateau before we stop",
+    )
 
     return parser.parse_args()
 
@@ -117,7 +123,7 @@ def main() -> None:
     X_train = scaler.fit_transform(X_train)
     X_val = scaler.transform(X_val)
 
-    mlp = MultilayerPerceptron(args.reg, args.reg_lambda)
+    mlp = MultilayerPerceptron(args.reg, args.reg_lambda, args.patience)
     nb_features = X_train.shape[1]
     prev_dim = nb_features
 

@@ -5,10 +5,11 @@ import numpy as np
 
 
 class MultilayerPerceptron:
-    def __init__(self, reg: str, reg_lambda: float) -> None:
+    def __init__(self, reg: str, reg_lambda: float, patience: int) -> None:
         self.layers: List[Layer] = []
         self.reg = reg
         self.reg_lambda = reg_lambda
+        self.patience = patience
 
     def add(self, layer: Layer) -> None:
         self.layers.append(layer)
@@ -50,6 +51,43 @@ class MultilayerPerceptron:
 
         return cross_entropy
 
+    def log_metrics(
+        self,
+        epoch: int,
+        nb_epochs: int,
+        features: NDArray[np.float64],
+        targets: NDArray[np.float64],
+        validation_predictions: NDArray[np.float64],
+        targets_val: NDArray[np.float64],
+        loss_val: float,
+        history: Dict[str, List[float]],
+    ) -> None:
+
+        weights_size: float = sum(
+            np.linalg.norm(layer.weights) for layer in self.layers
+        )
+        history["weights_norm"].append(weights_size)
+
+        training_predictions = self.forward(features)
+        training_loss: float = self.binary_cross_entropy(training_predictions, targets)
+        training_accuracy: float = (
+            (training_predictions > 0.5) == targets.reshape(-1, 1)
+        ).mean()
+
+        history["training_loss"].append(training_loss)
+        history["training_accuracy"].append(training_accuracy)
+
+        validation_accuracy: float = (
+            (validation_predictions > 0.5) == targets_val.reshape(-1, 1)
+        ).mean()
+        history["validation_loss"].append(loss_val)
+        history["validation_accuracy"].append(validation_accuracy)
+
+        print(
+            f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {loss_val} "
+            f"- accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
+        )
+
     def fit(
         self,
         features: NDArray[np.float64],
@@ -70,6 +108,12 @@ class MultilayerPerceptron:
         }
         nb_samples: np.integer = features.shape[0]
 
+        min_delta: float = 1e-4
+        best_loss_val: float = float("inf")
+        patience_counter: int = 0
+        best_weights = [layer.weights.copy() for layer in self.layers]
+        best_biases = [layer.biases.copy() for layer in self.layers]
+
         for epoch in range(nb_epochs):
             indices: NDArray[np.integer] = np.arange(nb_samples)
             rng = np.random.default_rng(seed + epoch)
@@ -85,32 +129,33 @@ class MultilayerPerceptron:
                 loss_gradient: NDArray[np.float64] = predictions - target_batch
                 self.backward(loss_gradient, learning_rate)
 
-            weights_size: float = (
-                np.linalg.norm(self.layers[0].weights)
-                + np.linalg.norm(self.layers[1].weights)
-                + np.linalg.norm(self.layers[2].weights)
+            predictions_val = self.forward(features_val)
+            loss_val = self.binary_cross_entropy(predictions_val, targets_val)
+            self.log_metrics(
+                epoch,
+                nb_epochs,
+                features,
+                targets,
+                predictions_val,
+                targets_val,
+                loss_val,
+                history,
             )
-            history["weights_norm"].append(weights_size)
-            training_predictions: NDArray[np.float64] = self.forward(features)
-            training_loss: float = self.binary_cross_entropy(
-                training_predictions, targets
-            )
-            training_accuracy: float = (
-                (training_predictions > 0.5) == targets.reshape(-1, 1)
-            ).mean()
-            history["training_loss"].append(training_loss)
-            history["training_accuracy"].append(training_accuracy)
-            validation_predictions: NDArray[np.float64] = self.forward(features_val)
-            validation_accuracy: float = (
-                (validation_predictions > 0.5) == targets_val.reshape(-1, 1)
-            ).mean()
-            validation_loss: float = self.binary_cross_entropy(
-                validation_predictions, targets_val
-            )
-            history["validation_loss"].append(validation_loss)
-            history["validation_accuracy"].append(validation_accuracy)
-            print(
-                f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {validation_loss} - accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
-            )
+            if loss_val < best_loss_val - min_delta:
+                best_loss_val = loss_val
+                patience_counter = 0
+
+                best_weights = [layer.weights.copy() for layer in self.layers]
+                best_biases = [layer.biases.copy() for layer in self.layers]
+            else:
+                patience_counter += 1
+                if patience_counter >= self.patience:
+                    print(
+                        f"Early stopping triggered at epoch {epoch + 1}. Restoring best model weights."
+                    )
+                    for i, layer in enumerate(self.layers):
+                        layer.weights = best_weights[i]
+                        layer.biases = best_biases[i]
+                    break
 
         return history
