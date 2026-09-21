@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import pickle
 
 from multilayer_perceptron import MultilayerPerceptron
 from utils.feature_scaler import FeatureScaler
@@ -28,33 +29,38 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--batch_size", type=int, default=8, help="Mini-batch size")
     parser.add_argument(
         "--learning_rate",
+        "-lr",
         type=float,
         default=0.01,
         help="Learning rate for gradient descent",
     )
     parser.add_argument(
-        "--activ",
+        "-activ",
+        "--activation",
         type=str,
         default="relu",
         choices=["relu", "sigmoid", "tanh", "linear"],
         help="Activation function",
     )
     parser.add_argument(
-        "--init",
+        "-init",
+        "--initializer",
         type=str,
         default="he",
         choices=["he", "xavier", "zero"],
         help="Weight initialization method",
     )
     parser.add_argument(
-        "--reg",
+        "-reg",
+        "--regularization",
         type=str,
         default="none",
         choices=["none", "l1", "l2"],
         help="Regularization helps to prevent overfitting",
     )
     parser.add_argument(
-        "--reg_lambda",
+        "-reg_lambda",
+        "--regularization_lambda",
         type=float,
         default=1,
         help="Parameter for l1 or l2 regularization",
@@ -128,23 +134,25 @@ def main() -> None:
     X_train = scaler.fit_transform(X_train)
     X_val = scaler.transform(X_val)
 
-    mlp = MultilayerPerceptron(args.reg, args.reg_lambda, args.patience)
+    mlp = MultilayerPerceptron(
+        args.regularization, args.regularization_lambda, args.patience
+    )
     nb_features: int = X_train.shape[1]
     prev_dim: int = nb_features
 
     i: int = 0
     for hidden_dim in args.layer:
-        i += 1
         mlp.add(
             Layer(
                 n_in=prev_dim,
                 n_out=hidden_dim,
-                activation=args.activ,
-                initializer=args.init,
+                activation=args.activation,
+                initializer=args.initializer,
                 seed=args.seed + i,
             )
         )
         prev_dim = hidden_dim
+        i += 1
 
     mlp.add(
         Layer(
@@ -152,7 +160,7 @@ def main() -> None:
             n_out=1,
             activation="sigmoid",
             initializer="xavier",
-            seed=args.seed + i + 1,
+            seed=args.seed + i,
         )
     )
 
@@ -169,6 +177,9 @@ def main() -> None:
         features_val=X_val,
         targets_val=y_val,
     )
+
+    with open("output/model_artifacts.pkl", "wb") as export_file:
+        pickle.dump({"mlp": mlp, "scaler": scaler}, export_file)
 
     plot_loss(history, args)
 
