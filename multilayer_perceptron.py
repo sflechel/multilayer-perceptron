@@ -85,8 +85,8 @@ class MultilayerPerceptron:
         history["validation_accuracy"].append(validation_accuracy)
 
         logger.info(
-            f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {loss_val} "
-            f"- accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
+            f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss:.4f} - val_loss: {loss_val:.4f} "
+            f"- accuracy: {training_accuracy:.4f} - val_accuracy: {validation_accuracy:.4f} - weights_norm: {weights_size:.4f}"
         )
 
     def snapshot(self):

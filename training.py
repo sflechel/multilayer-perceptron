@@ -87,33 +87,41 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None:
-    plt.figure(figsize=(9, 5))
-    plt.plot(history["training_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
-    plt.plot(
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax1.plot(history["training_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
+    ax1.plot(
         history["validation_loss"],
         label="Validation Loss",
         color="#ff7f0e",
         linewidth=2,
         linestyle="--",
     )
-    plt.plot(
+    ax1.set_title(f"Loss Curves (Layers: {args.layer})")
+    ax1.set_xlabel("Epochs")
+    ax1.set_ylabel("Binary Cross-Entropy Loss")
+    ax1.legend()
+    ax1.grid(True, linestyle=":", alpha=0.6)
+
+    ax2.plot(
         history["training_accuracy"],
         label="Train Accuracy",
-        color="#1177b4",
+        color="#1f77b4",
         linewidth=2,
     )
-    plt.plot(
+    ax2.plot(
         history["validation_accuracy"],
         label="Validation Accuracy",
         linewidth=2,
-        color="#ff77b4",
+        color="#ff7f0e",
         linestyle="--",
     )
-    plt.title(f"MLP Training Curves (Layers: {args.layer})")
-    plt.xlabel("Epochs")
-    plt.ylabel("Binary Cross-Entropy Loss")
-    plt.legend()
-    plt.grid(True, linestyle=":", alpha=0.6)
+    ax2.set_title(f"Accuracy Curves (Layers: {args.layer})")
+    ax2.set_xlabel("Epochs")
+    ax2.set_ylabel("Accuracy")
+    ax2.legend()
+    ax2.grid(True, linestyle=":", alpha=0.6)
+
     plt.tight_layout()
     plt.show()
 
