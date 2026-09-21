@@ -6,10 +6,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
+import logging
 
 from multilayer_perceptron import MultilayerPerceptron
 from utils.feature_scaler import FeatureScaler
 from layer_class import Layer
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -120,10 +128,9 @@ def main() -> None:
         testing_dataset: pd.DataFrame = pd.read_csv(
             Path("output/testing_dataset.csv"), header=None
         )
-    except Exception as _:
-        raise ValueError(
-            "Could not find datasets, please run clean_and_split_dataset.py first"
-        )
+    except Exception as e:
+        logging.error(e)
+        exit(1)
 
     X_train: NDArray[np.float64] = training_dataset.iloc[:, 2:].values
     y_train: NDArray[np.float64] = training_dataset.iloc[:, 1].values.reshape(-1, 1)
@@ -164,7 +171,7 @@ def main() -> None:
         )
     )
 
-    print(
+    logging.info(
         f"Starting training for {args.epochs + 1} epochs with batch size {args.batch_size}..."
     )
 
@@ -178,8 +185,12 @@ def main() -> None:
         targets_val=y_val,
     )
 
-    with open("output/model_artifacts.pkl", "wb") as export_file:
-        pickle.dump({"mlp": mlp, "scaler": scaler}, export_file)
+    try:
+        with open("output/model_artifacts.pkl", "wb") as export_file:
+            pickle.dump({"mlp": mlp, "scaler": scaler}, export_file)
+    except Exception as e:
+        logging.error(e)
+        exit(1)
 
     plot_loss(history, args)
 

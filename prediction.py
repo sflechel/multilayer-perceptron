@@ -55,7 +55,11 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    data: pd.DataFrame = import_from_csv(Path(args.path))
+    try:
+        data: pd.DataFrame = import_from_csv(Path(args.path))
+    except ValueError as e:
+        logging.error(e)
+        exit(1)
 
     with open(args.weights, "rb") as model_artifacts_file:
         bundle = pickle.load(model_artifacts_file)
@@ -63,16 +67,14 @@ def main() -> None:
     mlp: MultilayerPerceptron = bundle["mlp"]
     scaler: FeatureScaler = bundle["scaler"]
 
-    print(data.shape)
     X_pred: NDArray[np.float64] = data.drop(0, axis=1).values
-    print(X_pred.shape)
     X_pred = scaler.transform(X_pred)
 
     predictions: NDArray[np.float64] = mlp.forward(X_pred)
 
     for i, prob in enumerate(predictions, start=0):
         likelihood = prob[0] * 100
-        print(
+        logging.info(
             f"patient {data.iloc[i, 0]} has {likelihood:.2f}% likelyhood of having malignant breast cancer"
         )
 

@@ -90,7 +90,12 @@ def main() -> None:
         logging.error("Split parameter is a proportion, must be be between 0.1 and 0.9")
         exit(1)
 
-    data = import_from_csv(Path(args.path))
+    try:
+        data = import_from_csv(Path(args.path))
+    except ValueError as e:
+        logging.error(e)
+        exit(1)
+
     training_data: pd.DataFrame
     testing_data: pd.DataFrame
     training_data, testing_data = split_dataset(data, args.split, args.seed)

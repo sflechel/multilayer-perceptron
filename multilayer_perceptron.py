@@ -2,6 +2,9 @@ from numpy.typing import NDArray
 from layer_class import Layer
 from typing import Dict, List
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MultilayerPerceptron:
@@ -81,7 +84,7 @@ class MultilayerPerceptron:
         history["validation_loss"].append(loss_val)
         history["validation_accuracy"].append(validation_accuracy)
 
-        print(
+        logger.info(
             f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss} - val_loss: {loss_val} "
             f"- accuracy: {training_accuracy} - val_accuracy: {validation_accuracy} - weights_norm: {weights_size}"
         )
@@ -158,7 +161,7 @@ class MultilayerPerceptron:
             else:
                 patience_counter += 1
                 if patience_counter >= self.patience:
-                    print(f"Early stopping triggered at epoch {epoch + 1}")
+                    logger.info(f"Early stopping triggered at epoch {epoch + 1}")
                     break
 
         self.restore(best_weights, best_biases)
