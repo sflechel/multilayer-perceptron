@@ -1,8 +1,8 @@
-import sys
 from pathlib import Path
 import logging
 from typing import cast
 import pandas as pd
+import argparse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -74,15 +74,23 @@ def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> No
 
 
 def main() -> None:
-    if len(sys.argv) == 2:
-        dataset_path = Path(sys.argv[1])
-    else:
-        logging.error("Pass in dataset as first and only argument")
+    parser = argparse.ArgumentParser("Clean and split dataset for training")
+    parser.add_argument("path", type=str, help="Path to training data")
+    parser.add_argument(
+        "--split",
+        type=float,
+        help="Proportion of data allocated to training",
+        default=0.5,
+    )
+    args = parser.parse_args()
+    if args.split < 0.0 or args.split > 1.0:
+        logging.error("Split parameter is a proportion, must be be between 0 and 1")
         exit(1)
-    data = import_from_csv(dataset_path)
+
+    data = import_from_csv(args.path)
     training_data: pd.DataFrame
     testing_data: pd.DataFrame
-    training_data, testing_data = split_dataset(data)
+    training_data, testing_data = split_dataset(data, args.split)
     save_datasets(training_data, testing_data)
 
 
