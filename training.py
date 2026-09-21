@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
 import logging
+import json
+import os
 
 from multilayer_perceptron import MultilayerPerceptron
 from utils.feature_scaler import FeatureScaler
@@ -34,7 +36,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--epochs", type=int, default=70, help="Number of training epochs"
     )
-    parser.add_argument("--batch_size", type=int, default=8, help="Mini-batch size")
+    parser.add_argument(
+        "--batch_size", "-bs", type=int, default=8, help="Mini-batch size"
+    )
     parser.add_argument(
         "--learning_rate",
         "-lr",
@@ -126,6 +130,31 @@ def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None
     plt.show()
 
 
+def export_training_history(
+    history: dict, args: argparse.Namespace, log_dir: str = "logs"
+) -> None:
+    os.makedirs(log_dir, exist_ok=True)
+
+    layers_str = "-".join(map(str, args.layer))
+    filename = (
+        f"init{args.initializer}_layers{layers_str}_"
+        f"bs{args.batch_size}_"
+        f"lr{args.learning_rate}_reg{args.regularization}_"
+        f"lambda{args.regularization_lambda}_"
+        f"seed{args.seed}_patience{args.patience}.json"
+    )
+    filepath = os.path.join(log_dir, filename)
+
+    try:
+        with open(filepath, "w") as log_file:
+            json.dump(history, log_file, indent=4)
+    except Exception as e:
+        logging.error(e)
+        exit(1)
+
+    print(f"Training metrics history saved to {filepath}")
+
+
 def main() -> None:
     args: argparse.Namespace = parse_arguments()
 
@@ -200,6 +229,7 @@ def main() -> None:
         logging.error(e)
         exit(1)
 
+    export_training_history(history, args)
     plot_loss(history, args)
 
 
