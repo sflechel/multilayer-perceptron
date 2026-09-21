@@ -2,17 +2,19 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def xavier_init(n_in: int, n_out: int) -> NDArray[np.float64]:
+def xavier_init(n_in: int, n_out: int, seed: int) -> NDArray[np.float64]:
     limit = np.sqrt(6.0 / (n_in + n_out))
-    return np.random.uniform(-limit, limit, size=(n_out, n_in))
+    rng = np.random.default_rng(seed)
+    return rng.uniform(-limit, limit, size=(n_out, n_in))
 
 
-def he_init(n_in: int, n_out: int) -> NDArray[np.float64]:
+def he_init(n_in: int, n_out: int, seed: int) -> NDArray[np.float64]:
+    rng = np.random.default_rng(seed)
     stddev = np.sqrt(2.0 / n_in)
-    return np.random.normal(0.0, stddev, size=(n_out, n_in))
+    return rng.normal(0.0, stddev, size=(n_out, n_in))
 
 
-def zero_init(n_in: int, n_out: int) -> NDArray[np.float64]:
+def zero_init(n_in: int, n_out: int, seed: int) -> NDArray[np.float64]:
     return np.zeros((n_out, n_in))
 
 

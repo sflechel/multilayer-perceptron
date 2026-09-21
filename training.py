@@ -1,6 +1,8 @@
 import argparse
 from pathlib import Path
 from typing import Dict, List
+from numpy.typing import NDArray
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -63,6 +65,9 @@ def parse_arguments() -> argparse.Namespace:
         default=10,
         help="How long must validation loss plateau before we stop",
     )
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed for weight initialization"
+    )
 
     return parser.parse_args()
 
@@ -114,31 +119,42 @@ def main() -> None:
             "Could not find datasets, please run clean_and_split_dataset.py first"
         )
 
-    X_train = training_dataset.iloc[:, 2:].values
-    y_train = training_dataset.iloc[:, 1].values.reshape(-1, 1)
-    X_val = testing_dataset.iloc[:, 2:].values
-    y_val = testing_dataset.iloc[:, 1].values.reshape(-1, 1)
+    X_train: NDArray[np.float64] = training_dataset.iloc[:, 2:].values
+    y_train: NDArray[np.float64] = training_dataset.iloc[:, 1].values.reshape(-1, 1)
+    X_val: NDArray[np.float64] = testing_dataset.iloc[:, 2:].values
+    y_val: NDArray[np.float64] = testing_dataset.iloc[:, 1].values.reshape(-1, 1)
 
     scaler = FeatureScaler()
     X_train = scaler.fit_transform(X_train)
     X_val = scaler.transform(X_val)
 
     mlp = MultilayerPerceptron(args.reg, args.reg_lambda, args.patience)
-    nb_features = X_train.shape[1]
-    prev_dim = nb_features
+    nb_features: int = X_train.shape[1]
+    prev_dim: int = nb_features
 
+    i: int = 0
     for hidden_dim in args.layer:
+        i += 1
         mlp.add(
             Layer(
                 n_in=prev_dim,
                 n_out=hidden_dim,
                 activation=args.activ,
                 initializer=args.init,
+                seed=args.seed + i,
             )
         )
         prev_dim = hidden_dim
 
-    mlp.add(Layer(n_in=prev_dim, n_out=1, activation="sigmoid", initializer="xavier"))
+    mlp.add(
+        Layer(
+            n_in=prev_dim,
+            n_out=1,
+            activation="sigmoid",
+            initializer="xavier",
+            seed=args.seed + i + 1,
+        )
+    )
 
     print(
         f"Starting training for {args.epochs + 1} epochs with batch size {args.batch_size}..."

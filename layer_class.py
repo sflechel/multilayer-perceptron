@@ -6,12 +6,12 @@ import numpy as np
 
 class Layer:
     def __init__(
-        self, n_in: int, n_out: int, activation: str = "relu", initializer: str = "he"
+        self, n_in: int, n_out: int, activation: str, initializer: str, seed: int
     ) -> None:
         weight_init = get_initializer(initializer)
         self.activation, self.activation_derived = get_activation(activation)
 
-        self.weights: NDArray[np.float64] = weight_init(n_in, n_out)
+        self.weights: NDArray[np.float64] = weight_init(n_in, n_out, seed)
         self.biases: NDArray[np.float64] = np.zeros([1, n_out])
 
         self.d_weights: NDArray[np.float64] = np.zeros([n_in, n_out])

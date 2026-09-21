@@ -82,6 +82,9 @@ def main() -> None:
         help="Proportion of data allocated to training",
         default=0.5,
     )
+    parser.add_argument(
+        "--seed", type=int, help="Random seed for dataset split", default=42
+    )
     args = parser.parse_args()
     if args.split < 0.0 or args.split > 1.0:
         logging.error("Split parameter is a proportion, must be be between 0 and 1")
@@ -90,7 +93,7 @@ def main() -> None:
     data = import_from_csv(args.path)
     training_data: pd.DataFrame
     testing_data: pd.DataFrame
-    training_data, testing_data = split_dataset(data, args.split)
+    training_data, testing_data = split_dataset(data, args.split, args.seed)
     save_datasets(training_data, testing_data)
 
 
