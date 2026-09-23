@@ -24,7 +24,6 @@ class MultilayerPerceptron:
         self.opti = opti
         self.b1 = b1
         self.b2 = b2
-        self.t = 0
 
     def log_metrics(
         self,
@@ -86,7 +85,9 @@ class MultilayerPerceptron:
             out = layer.forward(out)
         return out
 
-    def backward(self, loss_gradient: NDArray[np.float64], learning_rate: float):
+    def backward(
+        self, loss_gradient: NDArray[np.float64], learning_rate: float, t: int
+    ):
         grad: NDArray[np.float64] = loss_gradient
         layers = list(reversed(self.layers))
         grad = layers[0].backward(
@@ -97,7 +98,7 @@ class MultilayerPerceptron:
             self.opti,
             self.b1,
             self.b2,
-            self.t,
+            t,
             is_combined_gradient=True,
         )
 
@@ -110,7 +111,7 @@ class MultilayerPerceptron:
                 self.opti,
                 self.b1,
                 self.b2,
-                self.t,
+                t,
             )
 
     def binary_cross_entropy(
@@ -173,6 +174,7 @@ class MultilayerPerceptron:
         best_loss_val: float = float("inf")
         patience_counter: int = 0
         best_weights, best_biases = self.snapshot()
+        t: int = 0
 
         for epoch in range(nb_epochs):
             indices: NDArray[np.integer] = np.arange(nb_samples)
@@ -187,8 +189,8 @@ class MultilayerPerceptron:
 
                 predictions: NDArray[np.float64] = self.forward(feature_batch)
                 loss_gradient: NDArray[np.float64] = predictions - target_batch
-                self.t += 1
-                self.backward(loss_gradient, learning_rate)
+                t += 1
+                self.backward(loss_gradient, learning_rate, t)
 
             predictions_val = self.forward(features_val)
             loss_val = self.binary_cross_entropy(predictions_val, targets_val)
