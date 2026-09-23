@@ -199,10 +199,11 @@ def export_training_history(
     layers_str = "-".join(map(str, args.layer))
     filename = (
         f"init{args.initializer}_layers{layers_str}_"
-        f"bs{args.batch_size}_"
+        f"bs{args.batch_size}_opti{args.optimizer}_"
+        f"beta1{args.beta1}_beta2{args.beta2}_"
         f"lr{args.learning_rate}_reg{args.regularization}_"
         f"lambda{args.regularization_lambda}_"
-        f"seed{args.seed}_patience{args.patience}.json"
+        f"seed{args.seed}.json"
     )
     filepath = os.path.join(log_dir, filename)
 
