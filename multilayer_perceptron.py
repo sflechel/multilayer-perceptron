@@ -78,11 +78,27 @@ class MultilayerPerceptron:
         history["training_loss"].append(training_loss)
         history["training_accuracy"].append(training_accuracy)
 
-        validation_accuracy: float = (
-            (validation_predictions > 0.5) == targets_val
-        ).mean()
+        validation_positives: NDArray[np.bool] = validation_predictions > 0.5
+        training_positives: NDArray[np.bool] = training_predictions > 0.5
+        validation_accuracy: float = (validation_positives == targets_val).mean()
         history["validation_loss"].append(loss_val)
         history["validation_accuracy"].append(validation_accuracy)
+
+        trn_true_pos: int = np.sum((training_positives == 1) & (targets == 1))
+        trn_false_pos: int = np.sum((training_positives == 1) & (targets == 0))
+        trn_false_neg: int = np.sum((training_positives == 0) & (targets == 1))
+        val_true_pos: int = np.sum((validation_positives == 1) & (targets_val == 1))
+        val_false_pos: int = np.sum((validation_positives == 1) & (targets_val == 0))
+        val_false_neg: int = np.sum((validation_positives == 0) & (targets_val == 1))
+
+        trn_recall: float = trn_true_pos / (trn_false_neg + trn_true_pos)
+        trn_precision: float = trn_true_pos / (trn_true_pos + trn_false_pos)
+        val_recall: float = val_true_pos / (val_false_neg + val_true_pos)
+        val_precision: float = val_true_pos / (val_true_pos + val_false_pos)
+        history["training_recall"].append(trn_recall)
+        history["training_precision"].append(trn_precision)
+        history["validation_recall"].append(val_recall)
+        history["validation_precision"].append(val_precision)
 
         logger.info(
             f"epoch {epoch + 1}/{nb_epochs} - loss: {training_loss:.4f} - val_loss: {loss_val:.4f} "
@@ -116,6 +132,10 @@ class MultilayerPerceptron:
             "validation_loss": [],
             "training_accuracy": [],
             "validation_accuracy": [],
+            "training_precision": [],
+            "validation_precision": [],
+            "training_recall": [],
+            "validation_recall": [],
             "weights_norm": [],
         }
         nb_samples: np.integer = features.shape[0]

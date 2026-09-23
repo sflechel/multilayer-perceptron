@@ -90,8 +90,9 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None:
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+def plot_metrics(history: Dict[str, List[float]], args: argparse.Namespace) -> None:
+    _, axes = plt.subplots(2, 2, figsize=(14, 10))
+    (ax1, ax2), (ax3, ax4) = axes
 
     ax1.plot(history["training_loss"], label="Train Loss", color="#1f77b4", linewidth=2)
     ax1.plot(
@@ -125,6 +126,44 @@ def plot_loss(history: Dict[str, List[float]], args: argparse.Namespace) -> None
     ax2.set_ylabel("Accuracy")
     ax2.legend()
     ax2.grid(True, linestyle=":", alpha=0.6)
+
+    ax3.plot(
+        history["training_precision"],
+        label="Train Precision",
+        color="#1f77b4",
+        linewidth=2,
+    )
+    ax3.plot(
+        history["validation_precision"],
+        label="Validation Precision",
+        linewidth=2,
+        color="#ff7f0e",
+        linestyle="--",
+    )
+    ax3.set_title(f"Precision Curves (Layers: {args.layer})")
+    ax3.set_xlabel("Epochs")
+    ax3.set_ylabel("Precision")
+    ax3.legend()
+    ax3.grid(True, linestyle=":", alpha=0.6)
+
+    ax4.plot(
+        history["training_recall"],
+        label="Train Recall",
+        color="#1f77b4",
+        linewidth=2,
+    )
+    ax4.plot(
+        history["validation_recall"],
+        label="Validation Recall",
+        linewidth=2,
+        color="#ff7f0e",
+        linestyle="--",
+    )
+    ax4.set_title(f"Recall Curves (Layers: {args.layer})")
+    ax4.set_xlabel("Epochs")
+    ax4.set_ylabel("Recall")
+    ax4.legend()
+    ax4.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
     plt.show()
@@ -230,7 +269,7 @@ def main() -> None:
         exit(1)
 
     export_training_history(history, args)
-    plot_loss(history, args)
+    plot_metrics(history, args)
 
 
 if __name__ == "__main__":
