@@ -71,7 +71,7 @@ def parse_arguments() -> argparse.Namespace:
         help="Regularization helps to prevent overfitting",
     )
     parser.add_argument(
-        "-reg_lambda",
+        "-l",
         "--regularization_lambda",
         type=float,
         default=1,
@@ -85,6 +85,28 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--seed", type=int, default=42, help="Random seed for weight initialization"
+    )
+    parser.add_argument(
+        "--optimizer",
+        "-opti",
+        type=str,
+        default="none",
+        choices=["none", "momentum", "rmsprop", "adam"],
+        help="Gradient descent optimization algorithm",
+    )
+    parser.add_argument(
+        "--beta1",
+        "-b1",
+        type=float,
+        default=0.9,
+        help="Exponential decay for first moment, for Adam or Momentum",
+    )
+    parser.add_argument(
+        "--beta2",
+        "-b2",
+        type=float,
+        default=0.999,
+        help="Exponential decay for second moment, for RMSprop or Adam",
     )
 
     return parser.parse_args()
@@ -218,7 +240,12 @@ def main() -> None:
     X_val = scaler.transform(X_val)
 
     mlp = MultilayerPerceptron(
-        args.regularization, args.regularization_lambda, args.patience
+        args.regularization,
+        args.regularization_lambda,
+        args.optimizer,
+        args.beta1,
+        args.beta2,
+        args.patience,
     )
     nb_features: int = X_train.shape[1]
     prev_dim: int = nb_features
