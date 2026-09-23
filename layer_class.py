@@ -14,13 +14,13 @@ class Layer:
         self.weights: NDArray[np.float64] = weight_init(n_in, n_out, seed)
         self.biases: NDArray[np.float64] = np.zeros([1, n_out])
 
-        self.d_weights: NDArray[np.float64] = np.zeros([n_in, n_out])
+        self.d_weights: NDArray[np.float64] = np.zeros([n_out, n_in])
         self.d_biases: NDArray[np.float64] = np.zeros([1, n_out])
 
-        self.a_weights: NDArray[np.float64] = np.zeros([n_in, n_out])
+        self.a_weights: NDArray[np.float64] = np.zeros([n_out, n_in])
         self.a_biases: NDArray[np.float64] = np.zeros([1, n_out])
 
-        self.s_weights: NDArray[np.float64] = np.zeros([n_in, n_out])
+        self.s_weights: NDArray[np.float64] = np.zeros([n_out, n_in])
         self.s_biases: NDArray[np.float64] = np.zeros([1, n_out])
 
         self.input: NDArray[np.float64] = np.array([])
@@ -73,7 +73,7 @@ class Layer:
 
         if optimization == "adam":
             self.a_weights = beta1 * self.a_weights + (1 - beta1) * self.d_weights
-            self.a_biases = beta1 * self.a_weights + (1 - beta1) * self.d_biases
+            self.a_biases = beta1 * self.a_biases + (1 - beta1) * self.d_biases
 
             self.s_weights = beta2 * self.s_weights + (1 - beta2) * (self.d_weights**2)
             self.s_biases = beta2 * self.s_biases + (1 - beta2) * (self.d_biases**2)
