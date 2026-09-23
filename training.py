@@ -10,9 +10,9 @@ import logging
 import json
 import os
 
-from multilayer_perceptron import MultilayerPerceptron
+from mlp.multilayer_perceptron import MultilayerPerceptron
 from utils.feature_scaler import FeatureScaler
-from layer_class import Layer
+from mlp.layer_class import Layer
 
 
 logging.basicConfig(

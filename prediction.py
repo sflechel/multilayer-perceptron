@@ -6,7 +6,7 @@ import logging
 import numpy as np
 
 import pickle
-from multilayer_perceptron import MultilayerPerceptron
+from mlp.multilayer_perceptron import MultilayerPerceptron
 from utils.feature_scaler import FeatureScaler
 
 logging.basicConfig(
@@ -48,7 +48,9 @@ def import_from_csv(path: Path) -> pd.DataFrame:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Predict odds that breast cancer is malignant or benign"
+    )
     parser.add_argument("path", type=str, help="Path to dataset for prediction")
     parser.add_argument(
         "weights", type=str, help="Path to model weights for prediction"

@@ -74,7 +74,7 @@ def save_datasets(training_data: pd.DataFrame, testing_data: pd.DataFrame) -> No
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser("Clean and split dataset for training")
+    parser = argparse.ArgumentParser(description="Clean and split dataset for training")
     parser.add_argument("path", type=str, help="Path to training data")
     parser.add_argument(
         "--split",

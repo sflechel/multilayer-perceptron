@@ -9,4 +9,4 @@ description = "A modular Multilayer Perceptron built from scratch"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["numpy", "pandas", "pytest", "joblib"]
-packages = ["utils"]
+packages = ["utils", "mlp"]

@@ -1,5 +1,5 @@
 from numpy.typing import NDArray
-from layer_class import Layer
+from mlp.layer_class import Layer
 from typing import Dict, List
 import numpy as np
 import logging
