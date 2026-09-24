@@ -8,5 +8,7 @@ version = "0.1.0"
 description = "A modular Multilayer Perceptron built from scratch"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["numpy", "pandas", "pytest", "joblib"]
+dependencies = ["numpy", "pandas", "pytest", "joblib", "matplotlib"]
+
+[tool.setuptools]
 packages = ["utils", "mlp"]
